@@ -1,0 +1,37 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  amount      Float
+  category    String
+  description String
+  merchant    String?
+  date        DateTime
+  imageUrl    String?
+  rawOcrData  String?
+  tags        String?
+  currency    String   @default("MXN")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Budget {
+  id        String   @id @default(cuid())
+  category  String
+  amount    Float
+  month     Int
+  year      Int
+  alertAt   Float    @default(80)
+  currency  String   @default("MXN")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([category, month, year])
+}
