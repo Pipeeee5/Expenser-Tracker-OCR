@@ -43,28 +43,34 @@ export default function DashboardPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [summary, setSummary] = useState<ReportSummary | null>(null);
+  const [customCategories, setCustomCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const loadDashboard = async () => {
+    try {
+      const [expRes, budRes, repRes, catRes] = await Promise.all([
+        fetch(`/api/expenses?month=${month}&year=${year}&limit=5`),
+        fetch(`/api/budgets?month=${month}&year=${year}`),
+        fetch(`/api/reports?startDate=${year}-${String(month).padStart(2,'0')}-01&endDate=${year}-${String(month).padStart(2,'0')}-31`),
+        fetch('/api/categories'),
+      ]);
+      const [expData, budData, repData, catData] = await Promise.all([expRes.json(), budRes.json(), repRes.json(), catRes.json()]);
+      setExpenses(Array.isArray(expData) ? expData : []);
+      setBudgets(Array.isArray(budData) ? budData : []);
+      setSummary(repData.summary || null);
+      setCustomCategories(Array.isArray(catData) ? catData : []);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const load = async () => {
-      try {
-        const [expRes, budRes, repRes] = await Promise.all([
-          fetch(`/api/expenses?month=${month}&year=${year}&limit=5`),
-          fetch(`/api/budgets?month=${month}&year=${year}`),
-          fetch(`/api/reports?startDate=${year}-${String(month).padStart(2,'0')}-01&endDate=${year}-${String(month).padStart(2,'0')}-31`),
-        ]);
-        const [expData, budData, repData] = await Promise.all([expRes.json(), budRes.json(), repRes.json()]);
-        setExpenses(Array.isArray(expData) ? expData : []);
-        setBudgets(Array.isArray(budData) ? budData : []);
-        setSummary(repData.summary || null);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
+    loadDashboard();
   }, [month, year]);
+
+  const getCat = (id: string) => getCategoryById(id, customCategories);
 
   const totalSpent = summary?.total ?? 0;
   const totalBudget = budgets.reduce((a, b) => a + b.amount, 0);
@@ -79,8 +85,8 @@ export default function DashboardPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-            <p className="text-slate-400 text-sm capitalize">{monthLabel}</p>
+            <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+            <p className="text-muted text-sm capitalize">{monthLabel}</p>
           </div>
           <Link
             href="/expenses"
@@ -152,11 +158,11 @@ export default function DashboardPage() {
               className={`bg-gradient-to-br ${card.color} border ${card.border} rounded-xl p-4`}
             >
               <div className="flex items-center justify-between mb-3">
-                <p className="text-xs text-slate-400">{card.label}</p>
+                <p className="text-xs text-muted">{card.label}</p>
                 <card.icon size={16} className={card.iconColor} />
               </div>
-              <p className="text-xl font-bold text-white">{loading ? '...' : card.value}</p>
-              <p className="text-xs text-slate-500 mt-1">{card.sub}</p>
+              <p className="text-xl font-bold text-foreground">{loading ? '...' : card.value}</p>
+              <p className="text-xs text-muted/70 mt-1">{card.sub}</p>
             </div>
           ))}
         </div>
@@ -164,9 +170,9 @@ export default function DashboardPage() {
         {/* Charts Row */}
         <div className="grid lg:grid-cols-2 gap-6">
           {/* Monthly trend */}
-          <div className="bg-[#1a1a2e] border border-[#2a2a45] rounded-xl p-5">
-            <h2 className="text-white font-semibold mb-1">Tendencia mensual</h2>
-            <p className="text-xs text-slate-500 mb-4">Últimos meses</p>
+          <div className="bg-card border border-border rounded-xl p-5">
+            <h2 className="text-foreground font-semibold mb-1">Tendencia mensual</h2>
+            <p className="text-xs text-muted/70 mb-4">Últimos meses</p>
             {summary?.byMonth && summary.byMonth.length > 0 ? (
               <ExpenseBarChart
                 data={summary.byMonth.map((d) => ({
@@ -175,16 +181,16 @@ export default function DashboardPage() {
                 }))}
               />
             ) : (
-              <div className="h-[180px] flex items-center justify-center text-slate-500 text-sm">
+              <div className="h-[180px] flex items-center justify-center text-muted/70 text-sm">
                 Sin datos aún
               </div>
             )}
           </div>
 
           {/* Category breakdown */}
-          <div className="bg-[#1a1a2e] border border-[#2a2a45] rounded-xl p-5">
-            <h2 className="text-white font-semibold mb-1">Por categoría</h2>
-            <p className="text-xs text-slate-500 mb-4">{monthLabel}</p>
+          <div className="bg-card border border-border rounded-xl p-5">
+            <h2 className="text-foreground font-semibold mb-1">Por categoría</h2>
+            <p className="text-xs text-muted/70 mb-4">{monthLabel}</p>
             <div className="flex items-center gap-4">
               <div className="flex-shrink-0">
                 <CategoryPieChart data={summary?.byCategory ?? []} />
@@ -193,8 +199,8 @@ export default function DashboardPage() {
                 {(summary?.byCategory ?? []).slice(0, 5).map((cat) => (
                   <div key={cat.id} className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: cat.color }} />
-                    <span className="text-xs text-slate-400 truncate flex-1">{cat.label}</span>
-                    <span className="text-xs text-white font-medium">{cat.percentage.toFixed(0)}%</span>
+                    <span className="text-xs text-muted truncate flex-1">{cat.label}</span>
+                    <span className="text-xs text-foreground font-medium">{cat.percentage.toFixed(0)}%</span>
                   </div>
                 ))}
               </div>
@@ -204,33 +210,33 @@ export default function DashboardPage() {
 
         {/* Budget Progress */}
         {budgets.length > 0 && (
-          <div className="bg-[#1a1a2e] border border-[#2a2a45] rounded-xl p-5">
+          <div className="bg-card border border-border rounded-xl p-5">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-white font-semibold">Presupuestos</h2>
+              <h2 className="text-foreground font-semibold">Presupuestos</h2>
               <Link href="/budget" className="text-xs text-purple-400 hover:text-purple-300">Ver todos →</Link>
             </div>
             <div className="grid sm:grid-cols-2 gap-3">
               {budgets.slice(0, 4).map((b) => {
-                const cat = getCategoryById(b.category);
+                const cat = getCat(b.category);
                 const { bgColor } = getBudgetStatus(b.spent, b.amount, b.alertAt);
                 return (
-                  <div key={b.id} className="bg-[#13131f] rounded-lg p-3">
+                  <div key={b.id} className="bg-surface rounded-lg p-3">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <span>{cat.icon}</span>
-                        <span className="text-sm text-white font-medium">{cat.label}</span>
+                        <span className="text-sm text-foreground font-medium">{cat.label}</span>
                       </div>
-                      <span className="text-xs text-slate-400">
+                      <span className="text-xs text-muted">
                         {formatCurrency(b.spent)} / {formatCurrency(b.amount)}
                       </span>
                     </div>
-                    <div className="w-full bg-[#2a2a45] rounded-full h-1.5">
+                    <div className="w-full bg-border rounded-full h-1.5">
                       <div
                         className={`${bgColor} h-1.5 rounded-full transition-all duration-500`}
                         style={{ width: `${Math.min(b.percentage, 100)}%` }}
                       />
                     </div>
-                    <p className="text-xs text-slate-500 mt-1 text-right">{b.percentage.toFixed(0)}%</p>
+                    <p className="text-xs text-muted/70 mt-1 text-right">{b.percentage.toFixed(0)}%</p>
                   </div>
                 );
               })}
@@ -239,20 +245,20 @@ export default function DashboardPage() {
         )}
 
         {/* Recent Expenses */}
-        <div className="bg-[#1a1a2e] border border-[#2a2a45] rounded-xl p-5">
+        <div className="bg-card border border-border rounded-xl p-5">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-white font-semibold">Gastos recientes</h2>
+            <h2 className="text-foreground font-semibold">Gastos recientes</h2>
             <Link href="/expenses" className="text-xs text-purple-400 hover:text-purple-300">Ver todos →</Link>
           </div>
           {loading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-12 bg-[#13131f] rounded-lg animate-pulse" />
+                <div key={i} className="h-12 bg-surface rounded-lg animate-pulse" />
               ))}
             </div>
           ) : expenses.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-slate-500 text-sm">No hay gastos registrados este mes</p>
+              <p className="text-muted/70 text-sm">No hay gastos registrados este mes</p>
               <Link href="/expenses" className="text-purple-400 text-sm mt-2 inline-block">
                 Agregar primer gasto →
               </Link>
@@ -260,9 +266,9 @@ export default function DashboardPage() {
           ) : (
             <div className="space-y-2">
               {expenses.map((e) => {
-                const cat = getCategoryById(e.category);
+                const cat = getCat(e.category);
                 return (
-                  <div key={e.id} className="flex items-center gap-3 p-3 bg-[#13131f] rounded-lg hover:bg-white/3 transition-colors">
+                  <div key={e.id} className="flex items-center gap-3 p-3 bg-surface rounded-lg hover:bg-hover-overlay transition-colors">
                     <div
                       className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 text-lg"
                       style={{ background: `${cat.color}20` }}
@@ -270,10 +276,10 @@ export default function DashboardPage() {
                       {cat.icon}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-white font-medium truncate">{e.description}</p>
-                      <p className="text-xs text-slate-500">{e.merchant ?? cat.label} · {formatDate(e.date)}</p>
+                      <p className="text-sm text-foreground font-medium truncate">{e.description}</p>
+                      <p className="text-xs text-muted/70">{e.merchant ?? cat.label} · {formatDate(e.date)}</p>
                     </div>
-                    <p className="text-sm font-semibold text-white flex-shrink-0">
+                    <p className="text-sm font-semibold text-foreground flex-shrink-0">
                       {formatCurrency(e.amount, e.currency)}
                     </p>
                   </div>

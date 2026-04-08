@@ -8,7 +8,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#0a0a14]">
+    <div className="flex h-screen overflow-hidden bg-background">
       {/* Desktop Sidebar */}
       <div className="hidden lg:flex flex-shrink-0">
         <Sidebar />
@@ -30,14 +30,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile topbar */}
-        <div className="lg:hidden flex items-center px-4 py-3 bg-[#13131f] border-b border-[#2a2a45]">
+        <div className="lg:hidden flex items-center px-4 py-3 bg-surface border-b border-border">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="text-slate-400 hover:text-white mr-3"
+            className="text-muted hover:text-foreground mr-3 transition-colors"
           >
             <Menu size={22} />
           </button>
-          <span className="text-lg font-bold text-white">
+          <span className="text-lg font-bold text-foreground">
             Expenser<span className="text-purple-400">Tracker</span>
           </span>
         </div>

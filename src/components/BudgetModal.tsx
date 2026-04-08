@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Save, Loader2 } from 'lucide-react';
-import { CATEGORIES } from '@/lib/categories';
+import { CATEGORIES, Category } from '@/lib/categories';
 import { getMonthName } from '@/lib/utils';
 
 interface BudgetModalProps {
@@ -27,6 +27,15 @@ export default function BudgetModal({ onClose, onSaved, month, year, editBudget 
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [customCategories, setCustomCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    fetch('/api/categories').then(r => r.json()).then(data => {
+      if (Array.isArray(data)) setCustomCategories(data);
+    }).catch(console.error);
+  }, []);
+
+  const allCategories = [...CATEGORIES.slice(0, -1), ...customCategories, CATEGORIES[CATEGORIES.length - 1]];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,15 +72,15 @@ export default function BudgetModal({ onClose, onSaved, month, year, editBudget 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-md bg-[#1a1a2e] border border-[#2a2a45] rounded-2xl shadow-2xl animate-fade-in">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#2a2a45]">
+      <div className="relative w-full max-w-md bg-card border border-border rounded-2xl shadow-2xl animate-fade-in">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <div>
-            <h2 className="text-white font-semibold text-lg">
+            <h2 className="text-foreground font-semibold text-lg">
               {editBudget ? 'Editar Presupuesto' : 'Nuevo Presupuesto'}
             </h2>
-            <p className="text-xs text-slate-500">{getMonthName(month, year)}</p>
+            <p className="text-xs text-muted/70">{getMonthName(month, year)}</p>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-white">
+          <button onClick={onClose} className="text-muted hover:text-foreground">
             <X size={20} />
           </button>
         </div>
@@ -80,9 +89,9 @@ export default function BudgetModal({ onClose, onSaved, month, year, editBudget 
           {/* Category */}
           {!editBudget && (
             <div>
-              <label className="block text-xs text-slate-400 mb-2">Categoría *</label>
-              <div className="grid grid-cols-5 gap-1.5">
-                {CATEGORIES.map((cat) => (
+              <label className="block text-xs text-muted mb-2">Categoría *</label>
+              <div className="grid grid-cols-5 gap-1.5 h-32 overflow-y-auto pr-1 custom-scrollbar">
+                {allCategories.map((cat) => (
                   <button
                     key={cat.id}
                     type="button"
@@ -90,23 +99,23 @@ export default function BudgetModal({ onClose, onSaved, month, year, editBudget 
                     title={cat.label}
                     className={`flex flex-col items-center gap-1 p-2 rounded-lg text-xs transition-all ${
                       form.category === cat.id
-                        ? 'bg-purple-600/30 border border-purple-500/60 text-white'
-                        : 'bg-[#13131f] border border-[#2a2a45] text-slate-400 hover:border-slate-500'
+                        ? 'bg-purple-600/30 border border-purple-500/60 text-foreground'
+                        : 'bg-surface border border-border text-muted hover:border-muted/50'
                     }`}
                   >
                     <span className="text-lg leading-none">{cat.icon}</span>
                   </button>
                 ))}
               </div>
-              <p className="text-xs text-purple-400 mt-1">
-                {CATEGORIES.find((c) => c.id === form.category)?.label}
+              <p className="text-xs text-primary mt-2">
+                {allCategories.find((c) => c.id === form.category)?.label}
               </p>
             </div>
           )}
 
           {/* Amount */}
           <div>
-            <label className="block text-xs text-slate-400 mb-1">Monto límite *</label>
+            <label className="block text-xs text-muted mb-1">Monto límite *</label>
             <input
               type="number"
               step="0.01"
@@ -114,14 +123,14 @@ export default function BudgetModal({ onClose, onSaved, month, year, editBudget 
               min="1"
               value={form.amount}
               onChange={(e) => setForm({ ...form, amount: e.target.value })}
-              className="w-full bg-[#13131f] border border-[#2a2a45] focus:border-purple-500 rounded-lg px-3 py-2 text-white text-sm"
+              className="w-full bg-input-bg border border-border focus:border-purple-500 rounded-lg px-3 py-2 text-foreground text-sm outline-none"
               placeholder="0.00"
             />
           </div>
 
           {/* Alert threshold */}
           <div>
-            <label className="block text-xs text-slate-400 mb-1">
+            <label className="block text-xs text-muted mb-1">
               Alertar al {form.alertAt}% del límite
             </label>
             <input
@@ -133,7 +142,7 @@ export default function BudgetModal({ onClose, onSaved, month, year, editBudget 
               onChange={(e) => setForm({ ...form, alertAt: e.target.value })}
               className="w-full accent-purple-500"
             />
-            <div className="flex justify-between text-xs text-slate-500 mt-1">
+            <div className="flex justify-between text-xs text-muted/70 mt-1">
               <span>50%</span>
               <span>75%</span>
               <span>100%</span>
@@ -148,7 +157,7 @@ export default function BudgetModal({ onClose, onSaved, month, year, editBudget 
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-sm font-medium transition-colors"
+              className="flex-1 px-4 py-2.5 bg-hover-overlay hover:bg-hover-overlay/80 text-foreground rounded-xl text-sm font-medium transition-colors"
             >
               Cancelar
             </button>

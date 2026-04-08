@@ -29,23 +29,26 @@ export interface OcrResult {
   modelUsed?: string;
 }
 
-const PROMPT = `Analiza esta imagen de recibo/factura/ticket de compra y responde ÚNICAMENTE con JSON válido sin texto adicional ni markdown.
+const PROMPT = `Analiza esta imagen y responde ÚNICAMENTE con JSON válido.
+Instrucciones críticas:
+1. "total": El monto final pagado. DEBE ser un número real. Si la moneda es CLP, ignora puntos de miles (ej: "20.000" -> 20000). Si es USD o EUR usa punto decimal.
+2. "currency": SOLO puede ser "CLP", "USD" o "EUR". Deduce según el símbolo o país. Default: CLP.
 
 Extrae:
-- rawText: Todo el texto visible en el recibo, preservando saltos de línea con \\n
+- rawText: Todo el texto visible en el recibo (con \\n)
 - merchant: Nombre del establecimiento
-- date: Fecha en formato YYYY-MM-DD (usa 2026 si no se distingue)
-- total: Monto total como número
+- date: Fecha YYYY-MM-DD
+- total: Monto total como número exacto
 - subtotal: número o null
 - tax: IVA/impuesto como número o null
-- currency: CLP/MXN/USD/EUR/COP/ARS/PEN según símbolo del ticket. Default: CLP
-- description: Resumen descriptivo de QUÉ se compró. Ej: "Supermercado - frutas, lácteos y abarrotes (8 productos)", "Ferretería - pinturas y herramientas"
+- currency: "CLP", "USD" o "EUR"
+- description: Resumen descriptivo breve.
 - items: [{description, amount, quantity}]
-- category: una de: food, transport, shopping, entertainment, health, housing, education, travel, business, other
-- confidence: 0-1
+- category: food, transport, shopping, entertainment, health, housing, education, travel, business o other
+- confidence: 0 a 1
 
 Ejemplo:
-{"rawText":"LIDER\\nLeche $2190\\nTOTAL $2190","merchant":"Supermercado Líder","date":"2026-04-08","total":2190,"subtotal":null,"tax":null,"currency":"CLP","description":"Supermercado - lácteos (1 producto)","items":[{"description":"Leche 1L","amount":2190,"quantity":1}],"category":"food","confidence":0.95}`;
+{"rawText":"LIDER\\nLeche $2190\\nTOTAL $2.190","merchant":"Tienda","date":"2026-04-08","total":2190,"subtotal":null,"tax":null,"currency":"CLP","description":"Víveres","items":[{"description":"Leche","amount":2190,"quantity":1}],"category":"food","confidence":0.95}`;
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 

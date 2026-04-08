@@ -16,9 +16,9 @@ interface ExpenseBarChartProps {
 const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number }>; label?: string }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-[#1a1a2e] border border-[#2a2a45] rounded-lg px-3 py-2 shadow-xl">
-        <p className="text-xs text-slate-400 capitalize">{label}</p>
-        <p className="text-sm font-semibold text-white">
+      <div className="bg-card border border-border rounded-lg px-3 py-2 shadow-xl">
+        <p className="text-xs text-muted capitalize">{label}</p>
+        <p className="text-sm font-semibold text-foreground">
           ${payload[0].value.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
         </p>
       </div>

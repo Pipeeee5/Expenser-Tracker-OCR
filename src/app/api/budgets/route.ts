@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+
     const { searchParams } = new URL(request.url);
     const month = searchParams.get('month');
     const year = searchParams.get('year');
@@ -12,7 +17,7 @@ export async function GET(request: NextRequest) {
     const y = year ? parseInt(year) : now.getFullYear();
 
     const budgets = await prisma.budget.findMany({
-      where: { month: m, year: y },
+      where: { month: m, year: y, userId: session.user.id },
       orderBy: { category: 'asc' },
     });
 
@@ -22,7 +27,7 @@ export async function GET(request: NextRequest) {
 
     const expensesByCategory = await prisma.expense.groupBy({
       by: ['category'],
-      where: { date: { gte: startDate, lte: endDate } },
+      where: { date: { gte: startDate, lte: endDate }, userId: session.user.id },
       _sum: { amount: true },
     });
 
@@ -46,6 +51,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+
     const body = await request.json();
     const { category, amount, month, year, alertAt, currency } = body;
 
@@ -54,9 +62,10 @@ export async function POST(request: NextRequest) {
     }
 
     const budget = await prisma.budget.upsert({
-      where: { category_month_year: { category, month: parseInt(month), year: parseInt(year) } },
+      where: { userId_category_month_year: { userId: session.user.id, category, month: parseInt(month), year: parseInt(year) } },
       update: { amount: parseFloat(amount), alertAt: alertAt ?? 80 },
       create: {
+        userId: session.user.id,
         category,
         amount: parseFloat(amount),
         month: parseInt(month),

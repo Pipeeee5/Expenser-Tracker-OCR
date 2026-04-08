@@ -18,12 +18,12 @@ const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<
   if (active && payload && payload.length) {
     const entry = payload[0];
     return (
-      <div className="bg-[#1a1a2e] border border-[#2a2a45] rounded-lg px-3 py-2 shadow-xl">
-        <p className="text-xs text-slate-400">{entry.name}</p>
-        <p className="text-sm font-semibold text-white">
+      <div className="bg-card border border-border rounded-lg px-3 py-2 shadow-xl">
+        <p className="text-xs text-muted">{entry.name}</p>
+        <p className="text-sm font-semibold text-foreground">
           ${entry.value.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
         </p>
-        <p className="text-xs text-purple-400">{entry.payload.percentage.toFixed(1)}%</p>
+        <p className="text-xs text-primary">{entry.payload.percentage.toFixed(1)}%</p>
       </div>
     );
   }
@@ -33,7 +33,7 @@ const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<
 export default function CategoryPieChart({ data }: CategoryPieChartProps) {
   if (!data || data.length === 0) {
     return (
-      <div className="h-[180px] flex items-center justify-center text-slate-500 text-sm">
+      <div className="h-[180px] flex items-center justify-center text-muted/70 text-sm">
         Sin datos
       </div>
     );

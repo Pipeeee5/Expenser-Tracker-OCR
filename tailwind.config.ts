@@ -6,13 +6,18 @@ const config: Config = {
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        background: '#0a0a14',
-        surface: '#13131f',
-        card: '#1a1a2e',
-        border: '#2a2a45',
+        background: 'var(--bg)',
+        surface: 'var(--surface)',
+        card: 'var(--card)',
+        border: 'var(--border)',
+        foreground: 'var(--foreground)',
+        muted: 'var(--muted)',
+        'input-bg': 'var(--input-bg)',
+        'hover-overlay': 'var(--hover-overlay)',
         primary: {
           50: '#f5f3ff',
           100: '#ede9fe',

@@ -90,14 +90,23 @@ export const CATEGORIES: Category[] = [
   },
 ];
 
-export function getCategoryById(id: string): Category {
-  return CATEGORIES.find((c) => c.id === id) ?? CATEGORIES[CATEGORIES.length - 1];
+export function getCategoryById(id: string, customCategories: Category[] = []): Category {
+  return CATEGORIES.find((c) => c.id === id) ??
+         customCategories.find((c) => c.id === id) ??
+         CATEGORIES[CATEGORIES.length - 1];
 }
 
-export function autoDetectCategory(text: string): string {
+export function autoDetectCategory(text: string, customCategories: Category[] = []): string {
   const lower = text.toLowerCase();
-  for (const category of CATEGORIES.slice(0, -1)) {
-    if (category.keywords.some((kw) => lower.includes(kw))) {
+  const allCategories = [...CATEGORIES.slice(0, -1), ...customCategories];
+  
+  for (const category of allCategories) {
+    // Manejar string separados por comas para compatibilidad con la base de datos
+    const kwList = typeof category.keywords === 'string' 
+      ? category.keywords.split(',').filter(Boolean) 
+      : (category.keywords || []);
+      
+    if (kwList.some((kw) => lower.includes(kw.trim()))) {
       return category.id;
     }
   }

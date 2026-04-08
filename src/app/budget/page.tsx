@@ -26,13 +26,19 @@ export default function BudgetPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editBudget, setEditBudget] = useState<Budget | undefined>();
+  const [customCategories, setCustomCategories] = useState<any[]>([]);
 
   const loadBudgets = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/budgets?month=${month}&year=${year}`);
+      const [res, catRes] = await Promise.all([
+        fetch(`/api/budgets?month=${month}&year=${year}`),
+        fetch('/api/categories')
+      ]);
       const data = await res.json();
+      const catData = await catRes.json();
       setBudgets(Array.isArray(data) ? data : []);
+      setCustomCategories(Array.isArray(catData) ? catData : []);
     } catch (e) {
       console.error(e);
     } finally {
@@ -70,8 +76,8 @@ export default function BudgetPage() {
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-white">Presupuesto</h1>
-            <p className="text-slate-400 text-sm">Control de gastos por categoría</p>
+            <h1 className="text-2xl font-bold text-foreground">Presupuesto</h1>
+            <p className="text-muted text-sm">Control de gastos por categoría</p>
           </div>
           <button
             onClick={() => { setEditBudget(undefined); setShowModal(true); }}
@@ -82,31 +88,31 @@ export default function BudgetPage() {
         </div>
 
         {/* Month navigation */}
-        <div className="flex items-center justify-between bg-[#1a1a2e] border border-[#2a2a45] rounded-xl px-4 py-3">
-          <button onClick={prevMonth} className="text-slate-400 hover:text-white p-1">
+        <div className="flex items-center justify-between bg-card border border-border rounded-xl px-4 py-3">
+          <button onClick={prevMonth} className="text-muted hover:text-foreground p-1 transition-colors">
             <ChevronLeft size={20} />
           </button>
-          <span className="text-white font-semibold capitalize">{getMonthName(month, year)}</span>
-          <button onClick={nextMonth} className="text-slate-400 hover:text-white p-1">
+          <span className="text-foreground font-semibold capitalize">{getMonthName(month, year)}</span>
+          <button onClick={nextMonth} className="text-muted hover:text-foreground p-1 transition-colors">
             <ChevronRight size={20} />
           </button>
         </div>
 
         {/* Summary */}
         <div className="grid grid-cols-3 gap-4">
-          <div className="bg-[#1a1a2e] border border-[#2a2a45] rounded-xl p-4 text-center">
-            <p className="text-2xl font-bold text-white">{formatCurrency(totalBudget)}</p>
-            <p className="text-xs text-slate-500 mt-1">Presupuesto total</p>
+          <div className="bg-card border border-border rounded-xl p-4 text-center">
+            <p className="text-2xl font-bold text-foreground">{formatCurrency(totalBudget)}</p>
+            <p className="text-xs text-muted/70 mt-1">Presupuesto total</p>
           </div>
-          <div className="bg-[#1a1a2e] border border-[#2a2a45] rounded-xl p-4 text-center">
-            <p className="text-2xl font-bold text-white">{formatCurrency(totalSpent)}</p>
-            <p className="text-xs text-slate-500 mt-1">Total gastado</p>
+          <div className="bg-card border border-border rounded-xl p-4 text-center">
+            <p className="text-2xl font-bold text-foreground">{formatCurrency(totalSpent)}</p>
+            <p className="text-xs text-muted/70 mt-1">Total gastado</p>
           </div>
-          <div className="bg-[#1a1a2e] border border-[#2a2a45] rounded-xl p-4 text-center">
+          <div className="bg-card border border-border rounded-xl p-4 text-center">
             <p className={`text-2xl font-bold ${totalBudget - totalSpent >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
               {formatCurrency(Math.abs(totalBudget - totalSpent))}
             </p>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-muted/70 mt-1">
               {totalBudget - totalSpent >= 0 ? 'Disponible' : 'Excedido'}
             </p>
           </div>
@@ -116,7 +122,7 @@ export default function BudgetPage() {
         {alerts.length > 0 && (
           <div className="space-y-2">
             {overBudget.map((b) => {
-              const cat = getCategoryById(b.category);
+              const cat = getCategoryById(b.category, customCategories);
               return (
                 <div key={b.id} className="flex items-center gap-3 bg-red-500/10 border border-red-500/30 rounded-xl p-3">
                   <AlertTriangle size={16} className="text-red-400 flex-shrink-0" />
@@ -127,7 +133,7 @@ export default function BudgetPage() {
               );
             })}
             {alerts.filter((b) => b.percentage < 100).map((b) => {
-              const cat = getCategoryById(b.category);
+              const cat = getCategoryById(b.category, customCategories);
               return (
                 <div key={b.id} className="flex items-center gap-3 bg-amber-500/10 border border-amber-500/30 rounded-xl p-3">
                   <AlertTriangle size={16} className="text-amber-400 flex-shrink-0" />
@@ -144,14 +150,14 @@ export default function BudgetPage() {
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-24 bg-[#1a1a2e] rounded-xl animate-pulse" />
+              <div key={i} className="h-24 bg-card rounded-xl animate-pulse" />
             ))}
           </div>
         ) : budgets.length === 0 ? (
-          <div className="text-center py-16 bg-[#1a1a2e] border border-[#2a2a45] rounded-xl">
+          <div className="text-center py-16 bg-card border border-border rounded-xl">
             <p className="text-4xl mb-3">💰</p>
-            <p className="text-white font-medium">Sin presupuestos configurados</p>
-            <p className="text-slate-500 text-sm mt-1 mb-4">Agrega límites de gasto por categoría</p>
+            <p className="text-foreground font-medium">Sin presupuestos configurados</p>
+            <p className="text-muted/70 text-sm mt-1 mb-4">Agrega límites de gasto por categoría</p>
             <button
               onClick={() => { setEditBudget(undefined); setShowModal(true); }}
               className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-sm rounded-lg transition-colors"
@@ -162,12 +168,12 @@ export default function BudgetPage() {
         ) : (
           <div className="space-y-3">
             {budgets.map((b) => {
-              const cat = getCategoryById(b.category);
+              const cat = getCategoryById(b.category, customCategories);
               const { status, color, bgColor } = getBudgetStatus(b.spent, b.amount, b.alertAt);
               const pct = Math.min(b.percentage, 100);
 
               return (
-                <div key={b.id} className="bg-[#1a1a2e] border border-[#2a2a45] rounded-xl p-4 group hover:border-[#3a3a60] transition-colors">
+                <div key={b.id} className="bg-card border border-border rounded-xl p-4 group hover:border-foreground/20 transition-colors">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
                       <div
@@ -177,8 +183,8 @@ export default function BudgetPage() {
                         {cat.icon}
                       </div>
                       <div>
-                        <p className="text-white font-medium">{cat.label}</p>
-                        <p className="text-xs text-slate-500">Alerta al {b.alertAt}%</p>
+                        <p className="text-foreground font-medium">{cat.label}</p>
+                        <p className="text-xs text-muted/70">Alerta al {b.alertAt}%</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -186,7 +192,7 @@ export default function BudgetPage() {
                         <p className={`text-sm font-semibold ${color}`}>
                           {formatCurrency(b.spent)}
                         </p>
-                        <p className="text-xs text-slate-500">de {formatCurrency(b.amount)}</p>
+                        <p className="text-xs text-muted/70">de {formatCurrency(b.amount)}</p>
                       </div>
                       {status === 'ok' ? (
                         <CheckCircle size={16} className="text-emerald-400" />
@@ -196,13 +202,13 @@ export default function BudgetPage() {
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => { setEditBudget(b); setShowModal(true); }}
-                          className="p-1.5 rounded text-slate-400 hover:text-white hover:bg-white/5"
+                          className="p-1.5 rounded text-muted hover:text-foreground hover:bg-hover-overlay"
                         >
                           <Edit size={14} />
                         </button>
                         <button
                           onClick={() => handleDelete(b.id)}
-                          className="p-1.5 rounded text-slate-400 hover:text-red-400 hover:bg-red-500/10"
+                          className="p-1.5 rounded text-muted hover:text-red-400 hover:bg-red-500/10"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -211,7 +217,7 @@ export default function BudgetPage() {
                   </div>
 
                   {/* Progress bar */}
-                  <div className="w-full bg-[#2a2a45] rounded-full h-2">
+                  <div className="w-full bg-border rounded-full h-2">
                     <div
                       className={`${bgColor} h-2 rounded-full transition-all duration-700`}
                       style={{ width: `${pct}%` }}
@@ -219,7 +225,7 @@ export default function BudgetPage() {
                   </div>
 
                   <div className="flex justify-between items-center mt-2">
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-muted/70">
                       {formatCurrency(Math.max(0, b.amount - b.spent))} disponible
                     </p>
                     <p className={`text-xs font-medium ${color}`}>

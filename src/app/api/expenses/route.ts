@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { autoDetectCategory } from '@/lib/categories';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
     const month = searchParams.get('month');
@@ -12,7 +19,9 @@ export async function GET(request: NextRequest) {
     const endDate = searchParams.get('endDate');
     const limit = searchParams.get('limit');
 
-    const where: Record<string, unknown> = {};
+    const where: Record<string, unknown> = {
+      userId: session.user.id,
+    };
 
     if (category && category !== 'all') {
       where.category = category;
@@ -47,6 +56,11 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { amount, category, description, merchant, date, imageUrl, rawOcrData, currency } = body;
 
@@ -58,6 +72,7 @@ export async function POST(request: NextRequest) {
 
     const expense = await prisma.expense.create({
       data: {
+        userId: session.user.id,
         amount: parseFloat(amount),
         category: detectedCategory,
         description,

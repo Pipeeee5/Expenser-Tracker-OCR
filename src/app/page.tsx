@@ -1,5 +1,8 @@
 import Link from 'next/link';
 import { TrendingUp, Scan, BarChart2, Bell, FileText, ArrowRight, CheckCircle, Star } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 const features = [
   {
@@ -45,26 +48,47 @@ const stats = [
   { value: '100%', label: 'Privado y local' },
 ];
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const session = await getServerSession(authOptions);
+
   return (
-    <div className="min-h-screen bg-[#0a0a14] text-white overflow-x-hidden">
+    <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
       {/* Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 flex items-center justify-between border-b border-white/5 bg-[#0a0a14]/80 backdrop-blur-xl">
+      <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 flex items-center justify-between border-b border-border/50 bg-background/80 backdrop-blur-xl">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-lg shadow-purple-500/30">
             <TrendingUp size={16} className="text-white" />
           </div>
           <span className="text-lg font-bold">
-            Expenser<span className="text-purple-400">Tracker</span>
+            Expenser<span className="text-primary">Tracker</span>
           </span>
         </div>
         <div className="flex items-center gap-3">
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-sm font-medium rounded-lg transition-all shadow-lg shadow-purple-600/30"
-          >
-            Abrir App <ArrowRight size={14} />
-          </Link>
+          {session ? (
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-sm font-medium rounded-lg transition-all shadow-lg shadow-purple-600/30"
+            >
+              Abrir App <ArrowRight size={14} />
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="hidden sm:inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted hover:text-foreground transition-all"
+              >
+                Inicia sesión
+              </Link>
+              <Link
+                href="/register"
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-sm font-medium rounded-lg transition-all shadow-lg shadow-purple-600/30"
+              >
+                Registrarse gratis
+              </Link>
+            </>
+          )}
+          <div className="ml-2 w-px h-6 bg-border" />
+          <ThemeToggle />
         </div>
       </nav>
 
@@ -76,8 +100,8 @@ export default function LandingPage() {
 
         <div className="relative max-w-4xl mx-auto">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-purple-600/15 border border-purple-500/30 rounded-full text-sm text-purple-300 mb-8">
-            <Star size={12} className="text-yellow-400" />
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-purple-100 dark:bg-purple-600/15 border border-purple-200 dark:border-purple-500/30 rounded-full text-sm text-purple-700 dark:text-purple-300 mb-8">
+            <Star size={12} className="text-yellow-500 dark:text-yellow-400" />
             Powered by Gemini 2.5 Flash
           </div>
 
@@ -89,7 +113,7 @@ export default function LandingPage() {
             </span>
           </h1>
 
-          <p className="text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+          <p className="text-lg sm:text-xl text-muted max-w-2xl mx-auto mb-10 leading-relaxed">
             Escanea recibos, categoriza gastos automáticamente y controla tu presupuesto.
             Todo con el poder del OCR de IA más avanzado.
           </p>
@@ -103,7 +127,7 @@ export default function LandingPage() {
             </Link>
             <Link
               href="/expenses?scan=true"
-              className="flex items-center gap-2 px-8 py-3.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium rounded-xl transition-all text-lg"
+              className="flex items-center gap-2 px-8 py-3.5 bg-surface hover:bg-muted border border-border text-foreground font-medium rounded-xl transition-all text-lg shadow-sm"
             >
               <Scan size={18} />
               Escanear recibo
@@ -113,16 +137,16 @@ export default function LandingPage() {
 
         {/* Dashboard Preview */}
         <div className="relative max-w-5xl mx-auto mt-16">
-          <div className="bg-[#13131f] border border-[#2a2a45] rounded-2xl overflow-hidden shadow-2xl shadow-purple-900/20">
+          <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-2xl shadow-purple-900/20">
             {/* Fake browser bar */}
-            <div className="flex items-center gap-2 px-4 py-3 bg-[#1a1a2e] border-b border-[#2a2a45]">
+            <div className="flex items-center gap-2 px-4 py-3 bg-card border-b border-border">
               <div className="flex gap-1.5">
                 <div className="w-3 h-3 rounded-full bg-red-500/60" />
                 <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
                 <div className="w-3 h-3 rounded-full bg-green-500/60" />
               </div>
-              <div className="flex-1 mx-3 bg-[#0a0a14] rounded px-3 py-1 text-xs text-slate-500">
-                localhost:3000/dashboard
+              <div className="flex-1 mx-3 bg-background rounded px-3 py-1 text-xs text-muted/70 font-mono text-center">
+                app.expensertracker.cloud/dashboard
               </div>
             </div>
             {/* Dashboard preview content */}
@@ -135,8 +159,8 @@ export default function LandingPage() {
               ].map((card) => (
                 <div key={card.label} className={`bg-gradient-to-br ${card.color} border border-white/5 rounded-xl p-3`}>
                   <p className="text-2xl mb-2">{card.icon}</p>
-                  <p className="text-xl font-bold text-white">{card.value}</p>
-                  <p className="text-xs text-slate-400 mt-1">{card.label}</p>
+                  <p className="text-xl font-bold text-foreground">{card.value}</p>
+                  <p className="text-xs text-muted mt-1">{card.label}</p>
                 </div>
               ))}
             </div>
@@ -149,11 +173,11 @@ export default function LandingPage() {
                 { label: '🎬 Entretenimiento', pct: 30, color: 'bg-purple-500' },
               ].map((item) => (
                 <div key={item.label} className="flex items-center gap-3">
-                  <span className="text-xs text-slate-400 w-36 text-left">{item.label}</span>
-                  <div className="flex-1 bg-[#2a2a45] rounded-full h-2">
+                  <span className="text-xs text-muted w-36 text-left">{item.label}</span>
+                  <div className="flex-1 bg-border rounded-full h-2">
                     <div className={`${item.color} h-2 rounded-full`} style={{ width: `${item.pct}%` }} />
                   </div>
-                  <span className="text-xs text-slate-400 w-8 text-right">{item.pct}%</span>
+                  <span className="text-xs text-muted w-8 text-right">{item.pct}%</span>
                 </div>
               ))}
             </div>
@@ -169,7 +193,7 @@ export default function LandingPage() {
           {stats.map((s) => (
             <div key={s.label} className="text-center">
               <p className="text-2xl font-bold text-gradient">{s.value}</p>
-              <p className="text-sm text-slate-500 mt-1">{s.label}</p>
+              <p className="text-sm text-muted/70 mt-1">{s.label}</p>
             </div>
           ))}
         </div>
@@ -180,7 +204,7 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
             <h2 className="text-4xl font-bold mb-4">Todo lo que necesitas</h2>
-            <p className="text-slate-400 text-lg">Herramientas poderosas para gestionar tus finanzas personales</p>
+            <p className="text-muted text-lg">Herramientas poderosas para gestionar tus finanzas personales</p>
           </div>
           <div className="grid sm:grid-cols-2 gap-6">
             {features.map((f) => (
@@ -188,8 +212,8 @@ export default function LandingPage() {
                 <div className={`w-12 h-12 bg-gradient-to-br ${f.color} rounded-xl flex items-center justify-center mb-4 shadow-lg`}>
                   <f.icon size={22} className="text-white" />
                 </div>
-                <h3 className="text-white font-semibold text-lg mb-2">{f.title}</h3>
-                <p className="text-slate-400 text-sm leading-relaxed">{f.description}</p>
+                <h3 className="text-foreground font-semibold text-lg mb-2">{f.title}</h3>
+                <p className="text-muted text-sm leading-relaxed">{f.description}</p>
               </div>
             ))}
           </div>
@@ -201,7 +225,7 @@ export default function LandingPage() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-14">
             <h2 className="text-4xl font-bold mb-4">Cómo funciona</h2>
-            <p className="text-slate-400 text-lg">Tres pasos simples para controlar tus gastos</p>
+            <p className="text-muted text-lg">Tres pasos simples para controlar tus gastos</p>
           </div>
           <div className="grid sm:grid-cols-3 gap-8">
             {steps.map((s) => (
@@ -209,8 +233,8 @@ export default function LandingPage() {
                 <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl shadow-purple-600/30">
                   <span className="text-2xl font-black text-white">{s.step}</span>
                 </div>
-                <h3 className="text-white font-semibold text-lg mb-2">{s.title}</h3>
-                <p className="text-slate-400 text-sm">{s.desc}</p>
+                <h3 className="text-foreground font-semibold text-lg mb-2">{s.title}</h3>
+                <p className="text-muted text-sm">{s.desc}</p>
               </div>
             ))}
           </div>
@@ -231,22 +255,22 @@ export default function LandingPage() {
                 'Exportación en PDF y CSV profesional',
                 'Interfaz moderna y fácil de usar',
               ].map((item) => (
-                <li key={item} className="flex items-start gap-3 text-slate-300">
-                  <CheckCircle size={18} className="text-purple-400 flex-shrink-0 mt-0.5" />
+                <li key={item} className="flex items-start gap-3 text-foreground">
+                  <CheckCircle size={18} className="text-primary flex-shrink-0 mt-0.5" />
                   {item}
                 </li>
               ))}
             </ul>
           </div>
           <div className="bg-gradient-to-br from-purple-900/40 to-indigo-900/40 border border-purple-500/20 rounded-2xl p-6 space-y-4">
-            <h3 className="text-white font-semibold text-lg">Ejemplo de OCR</h3>
-            <div className="bg-[#13131f] rounded-xl p-4 font-mono text-sm space-y-2">
-              <p className="text-slate-500">// Imagen escaneada →</p>
+            <h3 className="text-foreground font-semibold text-lg">Ejemplo de OCR</h3>
+            <div className="bg-surface rounded-xl p-4 font-mono text-sm space-y-2">
+              <p className="text-muted/70">// Imagen escaneada →</p>
               <p className="text-emerald-400">merchant: &quot;WALMART SUPERCENTER&quot;</p>
               <p className="text-blue-400">date: &quot;2026-04-08&quot;</p>
               <p className="text-amber-400">total: 847.50</p>
               <p className="text-pink-400">category: &quot;food&quot;</p>
-              <p className="text-purple-400">confidence: 0.97</p>
+              <p className="text-primary">confidence: 0.97</p>
             </div>
           </div>
         </div>
@@ -258,7 +282,7 @@ export default function LandingPage() {
           <div className="absolute inset-0 bg-purple-600/10 rounded-3xl blur-3xl" />
           <div className="relative bg-gradient-to-br from-purple-900/40 to-indigo-900/40 border border-purple-500/20 rounded-3xl p-12">
             <h2 className="text-4xl font-bold mb-4">Comienza a ahorrar hoy</h2>
-            <p className="text-slate-400 mb-8 text-lg">
+            <p className="text-muted mb-8 text-lg">
               Toma el control total de tus gastos con la tecnología de IA más avanzada.
             </p>
             <Link
@@ -272,12 +296,12 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-8 px-6 border-t border-white/5 text-center text-sm text-slate-600">
+      <footer className="py-8 px-6 border-t border-border/50 text-center text-sm text-muted/50">
         <div className="flex items-center justify-center gap-2 mb-2">
           <div className="w-5 h-5 bg-gradient-to-br from-purple-500 to-indigo-600 rounded flex items-center justify-center">
             <TrendingUp size={10} className="text-white" />
           </div>
-          <span className="text-slate-400 font-medium">ExpenserTracker</span>
+          <span className="text-muted font-medium">ExpenserTracker</span>
         </div>
         <p>Construido con Next.js · Prisma · Gemini 2.5 Flash · Tailwind CSS</p>
       </footer>
