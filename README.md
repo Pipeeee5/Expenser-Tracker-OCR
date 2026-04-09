@@ -41,72 +41,6 @@ Rastreador de gastos personal con escaneo OCR de boletas y facturas usando IA.
 
 ---
 
-## Inicio rápido
-
-### 1. Clona el repositorio
-
-```bash
-git clone https://github.com/Pipeeee5/Expense-Tracker-OCR.git
-cd Expense-Tracker-OCR
-```
-
-### 2. Instala dependencias
-
-```bash
-npm install
-```
-
-### 3. Configura las variables de entorno
-
-Crea un archivo `.env` en la raíz del proyecto:
-
-```env
-# Google Gemini API Key — https://aistudio.google.com/apikey
-GEMINI_API_KEY=tu_api_key_aqui
-
-# Base de datos
-DATABASE_URL="file:./dev.db"
-# Para producción usa PostgreSQL:
-# DATABASE_URL="postgresql://user:password@host:5432/expenser_tracker"
-
-# Cloudinary — https://cloudinary.com
-CLOUDINARY_CLOUD_NAME=tu_cloud_name
-CLOUDINARY_API_KEY=tu_api_key
-CLOUDINARY_API_SECRET=tu_api_secret
-
-# NextAuth
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=genera_un_secreto_largo_aqui
-```
-
-### 4. Inicializa la base de datos
-
-```bash
-npx prisma db push
-```
-
-### 5. Ejecuta el servidor
-
-```bash
-npm run dev
-```
-
-Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
-
----
-
-## Scripts disponibles
-
-```bash
-npm run dev          # Servidor de desarrollo en el puerto 3000
-npm run build        # Build de producción
-npm run start        # Servidor de producción
-npm run db:push      # Sincronizar schema con la base de datos
-npm run db:studio    # Abrir Prisma Studio (interfaz visual de la BD)
-```
-
----
-
 ## Estructura del proyecto
 
 ```
@@ -163,17 +97,6 @@ Formulario vacío       ── (siempre funciona)      ──▶ Completar manua
 
 ---
 
-## Base de datos
-
-El proyecto usa **SQLite** por defecto (sin configuración extra) y **PostgreSQL** en producción.
-
-Opciones gratuitas de PostgreSQL en la nube:
-- [Neon](https://neon.tech) — 512 MB gratis
-- [Supabase](https://supabase.com) — 500 MB gratis
-- [Railway](https://railway.app) — 1 GB gratis
-
----
-
 ## Licencia
 
-MIT
+
